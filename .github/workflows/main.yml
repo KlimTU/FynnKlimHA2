@@ -29,14 +29,14 @@ jobs:
           pip install black ruff pytest
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Check formatting with black
+      - name: Format with Black
         run: |
-          black --check backend/
-
-      - name: Lint with ruff
+          black backend/
+      
+      - name: Lint and fix with Ruff
         run: |
-          ruff check backend/
-
+          ruff . --fix
+      
       - name: Run tests with pytest
         run: |
           pytest tests/
