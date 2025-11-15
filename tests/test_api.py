@@ -1,8 +1,9 @@
 import sys
 from pathlib import Path
+
 from fastapi.testclient import TestClient
 
-# --- Ensure project root is in Python path for imports ---
+# Damit pytest die backend-App findet (Project Root in den Python-Pfad aufnehmen)
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from backend.main import app
@@ -10,49 +11,55 @@ from backend.main import app
 client = TestClient(app)
 
 
-def test_frontend_root_serves_html():
-    """Check that the frontend index loads successfully."""
+def test_frontend_index_loads():
+    """Testet, ob die Startseite erreichbar ist."""
+
     response = client.get("/")
     assert response.status_code == 200
-    assert "html" in response.text.lower()  # basic sanity check
+
+    # Es muss kein exakter Text geprüft werden – nur ob HTML zurückkommt.
+    assert "<!DOCTYPE" in response.text or "html" in response.text.lower()
 
 
-def test_create_note_and_fetch_it():
-    """Create a new note and verify it exists."""
-    payload = {"title": "Test Note", "body": "This is a test entry"}
+def test_create_and_read_note():
+    """Legt einen Eintrag an und prüft, ob dieser wieder abrufbar ist."""
 
-    # Create
-    response = client.post("/api/items", json=payload)
-    assert response.status_code == 201
+    new_note = {"title": "Notiz zum Test", "body": "Eintrag für Testzwecke"}
 
-    created_note = response.json()
-    assert created_note["title"] == payload["title"]
-    assert created_note["body"] == payload["body"]
-    assert "id" in created_note
+    # POST-Request zum Anlegen
+    create_response = client.post("/api/items", json=new_note)
+    assert create_response.status_code == 201
 
-    # Fetch list to confirm presence
+    created = create_response.json()
+
+    # Überprüfung der Inhalte
+    assert created["title"] == new_note["title"]
+    assert created["body"] == new_note["body"]
+    assert "id" in created  # muss eine ID bekommen
+
+    # Die Liste der Notizen abrufen und prüfen, ob der Eintrag enthalten ist
     list_response = client.get("/api/items")
     notes = list_response.json()
 
-    assert any(note["id"] == created_note["id"] for note in notes)
+    assert any(note["id"] == created["id"] for note in notes)
 
 
-def test_delete_note():
-    """Create a note, delete it, and verify it is gone."""
-    payload = {"title": "Delete Me", "body": "To be removed"}
+def test_delete_note_and_verify():
+    """Erstellt eine Notiz, löscht sie und prüft anschließend, ob sie verschwunden ist."""
 
-    # Create note first
-    create_response = client.post("/api/items", json=payload)
+    temp_note = {"title": "Zum Löschen", "body": "Soll später nicht mehr existieren"}
+
+    # Anlegen einer Notiz
+    create_response = client.post("/api/items", json=temp_note)
     assert create_response.status_code == 201
 
     note_id = create_response.json()["id"]
 
-    # Delete note
+    # Löschen des Eintrags
     delete_response = client.delete(f"/api/items/{note_id}")
     assert delete_response.status_code == 204
 
-    # Check that it no longer exists
-    list_response = client.get("/api/items")
-    notes = list_response.json()
+    # Liste erneut abrufen und sicherstellen, dass die ID nicht mehr existiert
+    updated_list = client.get("/api/items").json()
 
-    assert all(note["id"] != note_id for note in notes)
+    assert all(entry["id"] != note_id for entry in updated_list)
