@@ -27,32 +27,34 @@ Technologien:
 * **Backend:** FastAPI (Python)
 * **Datenbank:** SQLite
 
-## Anleitung zum Aufsetzen und Starten
+macOS (Terminal):
+1. cd FynnKlimHA2
+2. python3 -m venv venv
+3. source venv/bin/activate
 
-### macOS (Terminal)
+Windows (PowerShell):
+1. cd FynnKlimHA2
+2. python -m venv venv
+3. venv\Scripts\Activate
 
-1. `cd ppvs-fynnklim/backend`
-2. `python3 -m venv venv`
-3. `source venv/bin/activate`
+4. pip install -r requirements.txt
+5. uvicorn backend.main:app --reload
+6. Öffnen Sie http://127.0.0.1:8000/
+7. Viel Spaß!
 
-### Windows (PowerShell)
 
-1. `cd ppvs-fynnklim\backend`
-2. `python -m venv venv`
-3. `venv\Scripts\Activate`
+## Anleitung zum Ausführen der Tests  
 
-### Starten
+1. PYTHONPATH=. pytest -v
 
-4. `pip install -r ../requirements.txt`
-5. `cd ..`
-6. `uvicorn backend.main:app --reload`
-7. Öffnen Sie `http://127.0.0.1:8000/`
-8. Viel Spaß!
-
----
 
 Dieses Projekt steht unter der [MIT License](LICENSE).
 
 Copyright (c) 2025
 Fynn Kaschta & Klim Trinko
+
+
+
+Dieses Projekt steht unter der [MIT License](LICENSE).  
+Copyright (c) 2025 Fynn Kaschta & Klim Trinko
 

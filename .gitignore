@@ -1,0 +1,13 @@
+# Virtuelle Umgebungen
+venv/
+
+# IDE / System-Dateien
+.idea/
+.DS_Store
+
+# Python Cache-Dateien
+__pycache__/
+*.pyc
+
+# Lokale Datenbank-Dateien
+notes.db

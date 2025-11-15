@@ -1,0 +1,23 @@
+repos:
+  # --- Code formatting with Black ---
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+
+  # --- Linting with Ruff ---
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.3
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  # --- Run Pytest before commit ---
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run tests with pytest
+        entry: pytest
+        language: system
+        pass_filenames: false
+        always_run: true
