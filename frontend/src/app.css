@@ -1,0 +1,64 @@
+button {
+  background-color: #f4f4f4;
+  border: 3px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  margin-top: 20px;
+  margin-left: 20px;
+}
+button:hover {
+  opacity: 0.8;
+}
+button:active {
+  opacity: 0.5;
+}
+
+.input-container input {
+  padding: 5px;
+  margin-right: 5px;
+  width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  transition: border 0.2s;
+  margin-bottom: 5px;
+  outline: none;
+}
+input.title-error,
+input.content-error,
+input.id-error {
+  border-color: red !important;
+  box-shadow: 0 0 2px red;
+}
+
+.notes-table {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.col {
+  padding: 0px 10px;
+}
+
+.notes-header,
+.note-row {
+  display: grid;
+  grid-template-columns: 50px 200px 300px 1fr;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.notes-header {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+.note-row {
+  border: 1px solid #ccc;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
