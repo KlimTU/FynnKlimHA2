@@ -11,31 +11,18 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, validator
 from sqlmodel import Field as SQLField, Session, SQLModel, create_engine, select
 
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # Svelte-Dev-Server
-        "http://127.0.0.1:5173"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
 
 # ==========================================================
 #   MODELLE
 # ==========================================================
+
 
 # Basismodell für Notizen (wird von beiden anderen Klassen geerbt)
 class NoteBase(SQLModel):
     # Titel: Index für schnelle Suche, Mindest- und Maximallänge
     title: str = SQLField(index=True, min_length=1, max_length=200)
     # Inhalt der Notiz (Pflichtfeld)
-    content: str = SQLField(min_length=1)
+    body: str = SQLField(min_length=1)
 
 
 # Datenbankmodell (tatsächliche Tabelle)
@@ -87,10 +74,10 @@ app = FastAPI(title="Notes API", version="1.0.0")
 # --- Optionales CORS: erlaubt Anfragen von anderen Domains (z. B. lokalem Frontend) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],        # erlaubt alle Ursprünge (für Entwicklung)
+    allow_origins=["*"],  # erlaubt alle Ursprünge (für Entwicklung)
     allow_credentials=True,
-    allow_methods=["*"],        # erlaubt alle HTTP-Methoden
-    allow_headers=["*"],        # erlaubt alle Header
+    allow_methods=["*"],  # erlaubt alle HTTP-Methoden
+    allow_headers=["*"],  # erlaubt alle Header
 )
 
 
@@ -105,28 +92,29 @@ def on_startup():
 #   REST-ENDPUNKTE
 # ==========================================================
 
+
 # --- Neue Notiz anlegen ---
 @app.post("/api/items", response_model=NoteRead, status_code=status.HTTP_201_CREATED)
 def create_item(payload: NoteCreate, session: Session = Depends(get_session)):
-    note = Note(**payload.dict())   # JSON in Note-Objekt umwandeln
-    session.add(note)               # Notiz speichern
-    session.commit()                # Änderungen schreiben
-    session.refresh(note)           # Objekt aktualisieren (ID etc.)
-    return note                     # Rückgabe an den Client
+    note = Note(**payload.dict())  # JSON in Note-Objekt umwandeln
+    session.add(note)  # Notiz speichern
+    session.commit()  # Änderungen schreiben
+    session.refresh(note)  # Objekt aktualisieren (ID etc.)
+    return note  # Rückgabe an den Client
 
 
 # --- Alle Notizen abrufen (mit optionaler Filter- und Sortierfunktion) ---
 @app.get("/api/items", response_model=List[NoteRead])
 def list_items(
-    q: Optional[str] = None,                      # Suchbegriff (optional)
-    sort: Optional[str] = "created_at",           # Sortierfeld (Standard: nach Erstellungsdatum)
+    q: Optional[str] = None,  # Suchbegriff (optional)
+    sort: Optional[str] = "created_at",  # Sortierfeld (Standard: nach Erstellungsdatum)
     session: Session = Depends(get_session),
 ):
     stmt = select(Note)
     # Falls ein Suchbegriff angegeben wurde -> Filter anwenden
     if q:
         like = f"%{q}%"
-        stmt = stmt.where((Note.title.ilike(like)) | (Note.content.ilike(like)))
+        stmt = stmt.where((Note.title.ilike(like)) | (Note.body.ilike(like)))
     # Sortierung (z. B. -created_at = absteigend)
     if sort in {"created_at", "-created_at", "title", "-title", "id", "-id"}:
         desc = sort.startswith("-")
@@ -145,7 +133,9 @@ def get_item(item_id: int, session: Session = Depends(get_session)):
     note = session.get(Note, item_id)
     if not note:
         # Falls keine Notiz gefunden -> HTTP 404 Fehler
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
+        )
     return note
 
 
@@ -154,7 +144,9 @@ def get_item(item_id: int, session: Session = Depends(get_session)):
 def delete_item(item_id: int, session: Session = Depends(get_session)):
     note = session.get(Note, item_id)
     if not note:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Item not found"
+        )
     session.delete(note)
     session.commit()
     return
@@ -167,10 +159,3 @@ def delete_item(item_id: int, session: Session = Depends(get_session)):
 # Statische Dateien (HTML, JS, CSS) unter /static bereitstellen
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
-
-
-# Root-Endpunkt (liefert index.html im Browser)
-@app.get("/", response_class=HTMLResponse)
-def index():
-    with open("static/index.html", "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read(), status_code=200)
